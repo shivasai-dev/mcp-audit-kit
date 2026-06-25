@@ -18,7 +18,9 @@
             <h1>MCP Audit Kit</h1>
           </div>
         </div>
-        <div class="status-pill" id="apiStatus">Checking API</div>
+        <div class="topbar-actions">
+          <div class="status-pill" id="apiStatus">Checking API</div>
+        </div>
       </header>
 
       <section class="workspace" aria-label="Audit workspace">
@@ -50,6 +52,17 @@
           </div>
 
           <div class="severity-grid" id="severityGrid"></div>
+
+          <div class="signal-panel">
+            <div class="signal-header">
+              <div>
+                <p class="eyebrow">Live surface</p>
+                <h2 id="signalTitle">Risk constellation</h2>
+              </div>
+              <div class="signal-readout" id="signalReadout">No scan</div>
+            </div>
+            <div class="signal-map" id="signalMap" aria-label="Animated audit signal map"></div>
+          </div>
 
           <div class="tabbar" role="tablist" aria-label="Result views">
             <button class="tab-button active" type="button" data-view="findings">Findings</button>

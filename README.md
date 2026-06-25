@@ -17,6 +17,7 @@ The 2025 Stack Overflow Developer Survey reports that 84% of respondents use or 
 - Detect risky side effects such as shell execution, destructive actions, network calls, and sensitive data movement.
 - Review JSON Schema quality: missing schemas, broad string parameters, unknown fields, and missing output schemas.
 - Generate a suggested client policy for confirmation gates, logging, and server isolation.
+- Explore an animated risk constellation that maps tools and servers to their finding severity.
 - Run as a no-install browser app or as a CLI for CI.
 
 ## Quick start

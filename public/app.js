@@ -8,6 +8,9 @@ const scoreValue = document.querySelector("#scoreValue");
 const riskLevel = document.querySelector("#riskLevel");
 const headline = document.querySelector("#headline");
 const severityGrid = document.querySelector("#severityGrid");
+const signalTitle = document.querySelector("#signalTitle");
+const signalReadout = document.querySelector("#signalReadout");
+const signalMap = document.querySelector("#signalMap");
 const findingsView = document.querySelector("#findingsView");
 const policyView = document.querySelector("#policyView");
 const inventoryView = document.querySelector("#inventoryView");
@@ -21,6 +24,26 @@ const severityLabels = {
   low: "Low",
   info: "Info"
 };
+const severityRank = {
+  ready: 0,
+  info: 1,
+  low: 2,
+  medium: 3,
+  high: 4,
+  critical: 5
+};
+const mapLayout = [
+  [50, 16],
+  [22, 33],
+  [78, 33],
+  [32, 63],
+  [68, 63],
+  [50, 82],
+  [12, 72],
+  [88, 72],
+  [12, 18],
+  [88, 18]
+];
 
 const fallbackExamples = [
   {
@@ -46,6 +69,7 @@ const fallbackExamples = [
 ];
 
 let examples = fallbackExamples;
+let displayedScore = 0;
 
 boot();
 
@@ -109,7 +133,9 @@ function updateInputMeta() {
 
 async function auditCurrentInput() {
   runAudit.disabled = true;
+  runAudit.classList.add("is-running");
   runAudit.textContent = "Auditing";
+  document.querySelector(".editor-panel").classList.add("is-scanning");
 
   try {
     const parsed = JSON.parse(manifestInput.value);
@@ -131,31 +157,88 @@ async function auditCurrentInput() {
     renderError(error);
   } finally {
     runAudit.disabled = false;
+    runAudit.classList.remove("is-running");
     runAudit.textContent = "Run audit";
+    setTimeout(() => {
+      document.querySelector(".editor-panel").classList.remove("is-scanning");
+    }, 900);
   }
 }
 
 function renderReport(report) {
   const riskClass = report.riskLevel === "ready" ? "ready" : report.riskLevel;
   scoreOrbit.className = `score-orbit ${riskClass}`;
-  scoreOrbit.style.setProperty("--score", String(report.score));
-  scoreValue.textContent = String(report.score);
+  animateScore(report.score);
   riskLevel.textContent = titleCase(report.riskLevel);
   headline.textContent = report.summary.headline;
 
   renderSeverity(report.counts);
+  renderSignalMap(report);
   renderFindings(report.findings);
   renderPolicy(report.policy, report.recommendations);
   renderInventory(report.tools, report.servers);
 }
 
 function renderSeverity(counts = {}) {
-  severityGrid.innerHTML = severityOrder.map((severity) => `
-    <div class="severity-tile ${severity}">
+  const maxCount = Math.max(1, ...severityOrder.map((severity) => counts[severity] ?? 0));
+  severityGrid.innerHTML = severityOrder.map((severity, index) => `
+    <div class="severity-tile ${severity}" style="--tile-index: ${index}; --severity-fill: ${(counts[severity] ?? 0) / maxCount};">
       <strong>${counts[severity] ?? 0}</strong>
       <span>${severityLabels[severity]}</span>
     </div>
   `).join("");
+}
+
+function renderSignalMap(report) {
+  const surfaces = [
+    ...report.tools.map((tool) => ({ type: "tool", name: tool.name, tags: tool.tags })),
+    ...report.servers.map((server) => ({ type: "server", name: server.name, tags: [server.command || "server"] }))
+  ].slice(0, mapLayout.length);
+
+  signalTitle.textContent = report.riskLevel === "ready" ? "Trusted surface" : `${titleCase(report.riskLevel)} surface`;
+  signalReadout.textContent = `${report.findings.length} findings / ${surfaces.length} targets`;
+
+  if (!surfaces.length) {
+    signalMap.innerHTML = `<div class="signal-empty">No auditable surface</div>`;
+    return;
+  }
+
+  const nodes = surfaces.map((surface, index) => {
+    const findings = report.findings.filter((finding) => {
+      return finding.targetType === surface.type && finding.targetName === surface.name;
+    });
+    const severity = findings.reduce((worst, finding) => {
+      return severityRank[finding.severity] > severityRank[worst] ? finding.severity : worst;
+    }, findings.length ? "info" : "ready");
+    const [x, y] = mapLayout[index];
+    const size = Math.max(70, Math.min(112, 76 + findings.length * 5));
+
+    return {
+      ...surface,
+      x,
+      y,
+      size,
+      severity,
+      count: findings.length
+    };
+  });
+
+  const wires = nodes.slice(1).map((node, index) => {
+    const source = nodes[Math.floor(index / 2)];
+    return `<line class="signal-wire" x1="${source.x}%" y1="${source.y}%" x2="${node.x}%" y2="${node.y}%"></line>`;
+  }).join("");
+
+  signalMap.innerHTML = `
+    <svg class="signal-wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      ${wires}
+    </svg>
+    ${nodes.map((node, index) => `
+      <div class="signal-node ${escapeHtml(node.severity)}" style="--node-index: ${index}; --node-x: ${node.x}%; --node-y: ${node.y}%; --node-size: ${node.size}px;">
+        <strong title="${escapeHtml(node.name)}">${escapeHtml(shortName(node.name))}</strong>
+        <span>${node.count} ${node.count === 1 ? "finding" : "findings"}</span>
+      </div>
+    `).join("")}
+  `;
 }
 
 function renderFindings(findings) {
@@ -171,14 +254,14 @@ function renderFindings(findings) {
   `;
 }
 
-function renderFinding(finding) {
+function renderFinding(finding, index) {
   const target = finding.targetName
     ? `${escapeHtml(finding.targetType)}:${escapeHtml(finding.targetName)}`
     : "document";
   const evidence = finding.evidence ? `<code>${escapeHtml(finding.evidence)}</code>` : "";
 
   return `
-    <article class="finding-card ${escapeHtml(finding.severity)}">
+    <article class="finding-card ${escapeHtml(finding.severity)}" style="--card-index: ${index};">
       <div class="severity-rail"></div>
       <div class="finding-content">
         <div class="finding-meta">
@@ -263,15 +346,48 @@ function renderError(error) {
   riskLevel.textContent = "Invalid";
   headline.textContent = error.message;
   renderSeverity();
+  signalTitle.textContent = "Scan failed";
+  signalReadout.textContent = "Invalid JSON";
+  signalMap.innerHTML = `<div class="signal-empty">${escapeHtml(error.message)}</div>`;
   findingsView.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
   policyView.innerHTML = "";
   inventoryView.innerHTML = "";
+}
+
+function animateScore(targetScore) {
+  const start = displayedScore;
+  const end = Number(targetScore);
+  const startedAt = performance.now();
+  const duration = 560;
+
+  requestAnimationFrame(function tick(now) {
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + (end - start) * eased);
+    displayedScore = current;
+    scoreOrbit.style.setProperty("--score", String(current));
+    scoreValue.textContent = String(current);
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      displayedScore = end;
+      scoreOrbit.style.setProperty("--score", String(end));
+      scoreValue.textContent = String(end);
+    }
+  });
 }
 
 function titleCase(value) {
   return String(value)
     .replace(/-/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function shortName(value) {
+  const text = String(value);
+  if (text.length <= 16) return text;
+  return `${text.slice(0, 13)}...`;
 }
 
 function escapeHtml(value) {

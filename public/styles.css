@@ -7,6 +7,7 @@
   --panel-strong: #fdfefe;
   --accent: #256f8f;
   --accent-strong: #174f68;
+  --blue: #2f5ea8;
   --green: #1f8a5b;
   --amber: #b7791f;
   --red: #c2413d;
@@ -24,6 +25,11 @@
 body {
   margin: 0;
   min-width: 320px;
+  background:
+    linear-gradient(rgba(37, 111, 143, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(113, 87, 168, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg, #f6f8fb 0%, #eef4f7 45%, #f7f5fb 100%);
+  background-size: 32px 32px, 32px 32px, 100% 100%;
 }
 
 button,
@@ -39,6 +45,7 @@ button {
 .app-shell {
   min-height: 100vh;
   padding: 24px;
+  position: relative;
 }
 
 .topbar {
@@ -67,6 +74,7 @@ button {
     #ffffff;
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
+  animation: markFloat 6s ease-in-out infinite;
 }
 
 .brand-mark span {
@@ -75,6 +83,7 @@ button {
   display: block;
   clip-path: polygon(50% 0, 92% 14%, 82% 78%, 50% 100%, 18% 78%, 8% 14%);
   background: linear-gradient(160deg, var(--accent), var(--violet));
+  animation: shieldPulse 2.8s ease-in-out infinite;
 }
 
 .eyebrow {
@@ -114,6 +123,32 @@ h2 {
   color: var(--muted);
   font-size: 0.86rem;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(23, 32, 42, 0.08);
+}
+
+.status-pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 0 rgba(183, 121, 31, 0.35);
+  animation: statusPulse 1.8s ease-out infinite;
+}
+
+.status-pill.ready::before {
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(31, 138, 91, 0.34);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .workspace {
@@ -138,6 +173,25 @@ h2 {
   display: grid;
   grid-template-rows: auto minmax(420px, 1fr) auto;
   overflow: hidden;
+  position: relative;
+}
+
+.editor-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 68px;
+  height: 120px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(37, 111, 143, 0.08), transparent);
+  opacity: 0;
+  transform: translateY(-130%);
+}
+
+.editor-panel.is-scanning::before {
+  opacity: 1;
+  animation: editorScan 1.2s ease-in-out;
 }
 
 .panel-header {
@@ -184,8 +238,16 @@ textarea {
   font-size: 0.9rem;
   line-height: 1.55;
   color: #13202f;
-  background: #fbfcfe;
+  background:
+    linear-gradient(90deg, rgba(37, 111, 143, 0.055) 1px, transparent 1px),
+    #fbfcfe;
+  background-size: 68px 100%;
   tab-size: 2;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+textarea:focus {
+  box-shadow: inset 0 0 0 2px rgba(37, 111, 143, 0.18);
 }
 
 .editor-footer {
@@ -205,10 +267,27 @@ textarea {
   color: #ffffff;
   background: var(--accent);
   font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 10px 26px rgba(37, 111, 143, 0.22);
 }
 
 .primary-action:hover {
   background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.primary-action.is-running::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  animation: spin 760ms linear infinite;
 }
 
 #inputMeta {
@@ -242,6 +321,19 @@ textarea {
     radial-gradient(circle at center, #ffffff 57%, transparent 58%),
     conic-gradient(var(--risk-color) calc(var(--score) * 1%), #e7edf4 0);
   border: 1px solid var(--line);
+  transition: filter 260ms ease, transform 260ms ease;
+  animation: scoreRise 520ms ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(23, 32, 42, 0.06);
+  animation: orbitSweep 4.4s linear infinite;
 }
 
 .score-orbit span {
@@ -273,6 +365,22 @@ textarea {
   border-radius: 8px;
   padding: 10px;
   background: var(--panel-strong);
+  box-shadow: 0 8px 22px rgba(23, 32, 42, 0.05);
+  animation: tileEnter 420ms ease both;
+  animation-delay: calc(var(--tile-index, 0) * 55ms);
+  position: relative;
+  overflow: hidden;
+}
+
+.severity-tile::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: var(--risk-color);
+  transform: scaleX(var(--severity-fill, 0));
+  transform-origin: left;
+  transition: transform 480ms ease;
 }
 
 .severity-tile strong {
@@ -289,6 +397,7 @@ textarea {
 .tabbar {
   display: flex;
   gap: 8px;
+  margin-top: 16px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
@@ -333,10 +442,29 @@ textarea {
   display: grid;
   grid-template-columns: 7px 1fr;
   overflow: hidden;
+  animation: cardEnter 460ms ease both;
+  animation-delay: calc(var(--card-index, 0) * 38ms);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.finding-card:hover {
+  border-color: color-mix(in srgb, var(--risk-color), var(--line) 54%);
+  box-shadow: 0 12px 30px rgba(23, 32, 42, 0.09);
+  transform: translateY(-1px);
 }
 
 .severity-rail {
   background: var(--risk-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.severity-rail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.52), transparent);
+  animation: railFlash 1.8s ease-in-out infinite;
 }
 
 .finding-content {
@@ -434,6 +562,141 @@ textarea {
   font-weight: 800;
 }
 
+.signal-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(23, 32, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 32, 42, 0.04) 1px, transparent 1px),
+    #fbfcfe;
+  background-size: 28px 28px, 28px 28px, 100% 100%;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.signal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 14px 0;
+}
+
+.signal-readout {
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.signal-map {
+  min-height: 220px;
+  position: relative;
+  margin: 12px 14px 14px;
+  border: 1px solid rgba(217, 224, 234, 0.9);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(37, 111, 143, 0.1), transparent 38%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(247, 250, 252, 0.92));
+  overflow: hidden;
+}
+
+.signal-map::before {
+  content: "";
+  position: absolute;
+  inset: -40% 42% -40% auto;
+  width: 36%;
+  background: linear-gradient(90deg, transparent, rgba(37, 111, 143, 0.18), transparent);
+  transform: rotate(18deg);
+  animation: signalSweep 3.2s ease-in-out infinite;
+}
+
+.signal-map::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px dashed rgba(37, 111, 143, 0.2);
+  border-radius: 8px;
+  animation: mapBreath 3.8s ease-in-out infinite;
+}
+
+.signal-wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.signal-wire {
+  stroke: rgba(97, 112, 133, 0.24);
+  stroke-width: 1.4;
+  stroke-dasharray: 7 8;
+  animation: wireTravel 2.8s linear infinite;
+}
+
+.signal-node {
+  --node-x: 50%;
+  --node-y: 50%;
+  --node-size: 82px;
+  position: absolute;
+  left: var(--node-x);
+  top: var(--node-y);
+  z-index: 2;
+  width: var(--node-size);
+  min-height: 58px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  padding: 9px;
+  border: 1px solid color-mix(in srgb, var(--risk-color), #ffffff 35%);
+  clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 32px rgba(23, 32, 42, 0.12);
+  animation: nodeArrive 520ms ease both, nodeFloat 4.8s ease-in-out infinite;
+  animation-delay: calc(var(--node-index, 0) * 70ms), calc(var(--node-index, 0) * -420ms);
+}
+
+.signal-node::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  z-index: -1;
+  clip-path: inherit;
+  background: color-mix(in srgb, var(--risk-color), transparent 87%);
+}
+
+.signal-node strong {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.73rem;
+}
+
+.signal-node span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.signal-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  z-index: 2;
+  font-weight: 800;
+}
+
 .critical {
   --risk-color: var(--red);
 }
@@ -456,6 +719,148 @@ textarea {
 
 .ready {
   --risk-color: var(--green);
+}
+
+@keyframes markFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes shieldPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(37, 111, 143, 0));
+  }
+  50% {
+    filter: drop-shadow(0 6px 14px rgba(37, 111, 143, 0.32));
+  }
+}
+
+@keyframes statusPulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor, transparent 62%);
+  }
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+@keyframes editorScan {
+  0% {
+    transform: translateY(-130%);
+  }
+  100% {
+    transform: translateY(520%);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scoreRise {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes orbitSweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tileEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes railFlash {
+  0%,
+  100% {
+    transform: translateY(-100%);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes signalSweep {
+  0%,
+  100% {
+    transform: translateX(-220%) rotate(18deg);
+  }
+  50% {
+    transform: translateX(220%) rotate(18deg);
+  }
+}
+
+@keyframes mapBreath {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes wireTravel {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+
+@keyframes nodeArrive {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes nodeFloat {
+  0%,
+  100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -5px;
+  }
 }
 
 @media (max-width: 940px) {
@@ -517,7 +922,27 @@ textarea {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .signal-map {
+    min-height: 280px;
+  }
+
+  .signal-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .tabbar {
     overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
   }
 }
