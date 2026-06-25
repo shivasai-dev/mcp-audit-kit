@@ -1,3 +1,5 @@
+import { auditManifest } from "./auditor.mjs";
+
 const manifestInput = document.querySelector("#manifestInput");
 const sampleActions = document.querySelector("#sampleActions");
 const runAudit = document.querySelector("#runAudit");
@@ -78,13 +80,18 @@ async function boot() {
   renderSeverity();
 
   try {
-    const response = await fetch("/api/examples");
+    const response = await fetch("api/examples");
+    if (!response.ok) {
+      throw new Error("API examples unavailable");
+    }
     const data = await response.json();
     examples = data.examples;
     apiStatus.textContent = "API ready";
     apiStatus.classList.add("ready");
   } catch {
-    apiStatus.textContent = "Offline UI";
+    examples = await loadStaticExamples();
+    apiStatus.textContent = "Static demo ready";
+    apiStatus.classList.add("ready");
   }
 
   renderSampleButtons();
@@ -139,19 +146,7 @@ async function auditCurrentInput() {
 
   try {
     const parsed = JSON.parse(manifestInput.value);
-    const response = await fetch("/api/audit", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({ document: parsed })
-    });
-    const report = await response.json();
-
-    if (!response.ok) {
-      throw new Error(report.error ?? "Audit failed");
-    }
-
+    const report = auditManifest(parsed);
     renderReport(report);
   } catch (error) {
     renderError(error);
@@ -162,6 +157,25 @@ async function auditCurrentInput() {
     setTimeout(() => {
       document.querySelector(".editor-panel").classList.remove("is-scanning");
     }, 900);
+  }
+}
+
+async function loadStaticExamples() {
+  const specs = [
+    ["safe", "Safe sample", "fixtures/safe-mcp.json"],
+    ["risky", "Risky sample", "fixtures/risky-mcp.json"],
+    ["config", "Client config", "fixtures/mcp-client-config.json"]
+  ];
+
+  try {
+    const loaded = await Promise.all(specs.map(async ([id, label, path]) => {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Missing ${path}`);
+      return { id, label, document: await response.json() };
+    }));
+    return loaded;
+  } catch {
+    return fallbackExamples;
   }
 }
 

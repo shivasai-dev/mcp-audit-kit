@@ -2,6 +2,8 @@
 
 Local-first scanner for MCP tool manifests, agent tool configs, and tool-call risk.
 
+[Live demo](https://shivasai-dev.github.io/mcp-audit-kit/)
+
 MCP Audit Kit helps developers review the tools they expose to AI agents before those tools can read files, call APIs, run commands, or mutate production systems. It ships with a browser UI, CLI, API endpoint, fixtures, tests, and GitHub Actions CI without any runtime dependencies.
 
 ## Why this exists

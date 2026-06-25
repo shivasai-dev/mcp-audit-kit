@@ -7,3 +7,4 @@ dist/
 .env.*
 *.log
 reports/
+_site/
