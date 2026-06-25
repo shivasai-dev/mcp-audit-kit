@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\shiva"
+      ]
+    },
+    "local-shell": {
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "node server.js"
+      ],
+      "env": {
+        "PRIVATE_API_TOKEN": "replace-me"
+      }
+    },
+    "docs": {
+      "command": "node",
+      "args": [
+        "servers/docs.mjs",
+        "--workspace",
+        "C:\\Users\\shiva\\Documents\\Codex\\2026-06-25\\bud"
+      ]
+    }
+  }
+}

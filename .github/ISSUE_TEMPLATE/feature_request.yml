@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a rule, output format, or workflow.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Need
+      description: What user or workflow needs this?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed approach
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Rule
+        - CLI
+        - Web UI
+        - Docs
+        - CI
+    validations:
+      required: true

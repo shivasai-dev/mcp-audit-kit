@@ -1,0 +1,29 @@
+{
+  "name": "mcp-audit-kit",
+  "version": "0.1.0",
+  "description": "Local-first scanner for MCP tool manifests, agent tool configs, and tool-call risk.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "mcp-audit-kit": "./bin/mcp-audit-kit.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "audit": "node bin/mcp-audit-kit.mjs fixtures/risky-mcp.json",
+    "test": "node --test",
+    "ci": "npm test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "security",
+    "tool-calling",
+    "developer-tools"
+  ],
+  "author": "Shiva Sai",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

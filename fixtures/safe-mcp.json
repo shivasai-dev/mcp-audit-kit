@@ -1,0 +1,107 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "tools": [
+      {
+        "name": "search_docs",
+        "title": "Search documentation",
+        "description": "Search a local documentation index and return matching page summaries without changing external state.",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Search phrase entered by the user.",
+              "maxLength": 120
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Maximum number of results to return.",
+              "minimum": 1,
+              "maximum": 10
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "results": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "required": [
+            "results"
+          ]
+        },
+        "annotations": {
+          "readOnlyHint": true
+        }
+      },
+      {
+        "name": "get_issue_summary",
+        "title": "Get issue summary",
+        "description": "Read a single issue from the connected repository and return labels, status, and a short summary.",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "owner": {
+              "type": "string",
+              "description": "Repository owner.",
+              "pattern": "^[a-zA-Z0-9_.-]{1,39}$"
+            },
+            "repo": {
+              "type": "string",
+              "description": "Repository name.",
+              "pattern": "^[a-zA-Z0-9_.-]{1,100}$"
+            },
+            "number": {
+              "type": "integer",
+              "description": "Issue number.",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "owner",
+            "repo",
+            "number"
+          ]
+        },
+        "outputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string"
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "title",
+            "summary"
+          ]
+        },
+        "annotations": {
+          "readOnlyHint": true
+        }
+      }
+    ]
+  }
+}
